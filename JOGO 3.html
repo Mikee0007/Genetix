@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Genetix – Desafio da Hereditariedade</title>
+  <style>
+    :root{
+      --bg:#0b1020; --card:#111832; --muted:#93a1bd33; --text:#e8ecf7; --accent:#6aa6ff; --accent-2:#8ef0c6; --wrong:#ff6b6b; --right:#33d679;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto; background:radial-gradient(1200px 800px at 20% -10%, #1a2450 0%, transparent 60%),
+      radial-gradient(1000px 800px at 120% 10%, #1d2a63 0%, transparent 60%), var(--bg); color:var(--text)}
+    .wrap{max-width:1000px; margin:0 auto; padding:24px}
+    header{display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:16px}
+    h1{font-size:clamp(22px,3vw,32px); margin:0; letter-spacing:.4px}
+    .card{background:linear-gradient(180deg, #0f1631, #0a122a); border:1px solid #1f2a55; border-radius:18px; padding:20px; box-shadow:0 20px 50px #00000055}
+    .grid{display:grid; gap:16px}
+    .grid.cols-2{grid-template-columns:repeat(auto-fit, minmax(260px, 1fr))}
+    .grid.cols-3{grid-template-columns:repeat(auto-fit, minmax(220px, 1fr))}
+    .muted{color:#a7b3cf; opacity:.9}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid #2a3770; border-radius:999px; background:#0d1530}
+    .btn{display:inline-flex; align-items:center; justify-content:center; gap:10px; border:1px solid #2a3770; background:linear-gradient(180deg, #142050, #0b1537); padding:12px 16px; border-radius:14px; color:var(--text); cursor:pointer; text-decoration:none; font-weight:700; transition:all 0.2s ease}
+    .btn:hover{border-color:#3a55a5; transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+    .btn:active{transform:translateY(0); box-shadow:0 2px 6px rgba(0,0,0,0.2)}
+    .btn.primary{background:linear-gradient(180deg, #2b59ff, #1b3ccf); border-color:#2b59ff}
+    .btn.ghost{background:transparent}
+    .btn.block{width:100%}
+    .row{display:flex; gap:12px; flex-wrap:wrap}
+    .options{display:grid; gap:12px; margin-top:10px}
+    .options .opt{background:#0c1534; border:1px solid #223064; padding:14px; border-radius:12px; cursor:pointer; color:#fff; transition:all 0.2s ease}
+    .options .opt:hover{border-color:#3b5bd6; transform:translateY(-2px)}
+    .opt.correct{border-color:var(--right); background:#102a20; transform:scale(1.02)}
+    .opt.wrong{border-color:var(--wrong); background:#2a1414; transform:scale(1.02)}
+    .banner{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; border:1px dashed #2a3770; border-radius:12px}
+    .progress{height:10px; background:#0b1433; border-radius:999px; border:1px solid #1f2a55; overflow:hidden}
+    .progress > i{display:block; height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent-2)); transition:width 0.5s ease}
+    .tag{font-size:12px; color:#c8d3ee; background:#1b2552; border:1px solid #2a3770; padding:4px 8px; border-radius:999px}
+    .footer{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:10px}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    .hidden{display:none}
+    .small{font-size:12px}
+    .center{text-align:center}
+    .leader{display:flex; flex-direction:column; gap:8px}
+    .leader .score{display:flex; justify-content:space-between; align-items:center; background:#0e1533; border:1px solid #223064; border-radius:12px; padding:8px 12px}
+    .present .wrap{max-width:1200px}
+    .present h1{font-size:42px}
+    .present #questionText{font-size:28px}
+    .present .opt{font-size:20px; padding:16px}
+    .present .footer{font-size:18px}
+    .category-selector{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin:12px 0}
+    .category-btn{background:#0e1838; border:1px solid #2a3a70; border-radius:12px; padding:12px; cursor:pointer; text-align:center; transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-origin:center}
+    .category-btn:hover{background:#15245a; transform:translateY(-3px) scale(1.05); box-shadow:0 5px 15px rgba(0,0,0,0.2)}
+    .category-btn.selected{background:linear-gradient(180deg, #2b59ff, #1b3ccf); border-color:#2b59ff; transform:scale(1.05); box-shadow:0 5px 15px rgba(43, 89, 255, 0.3)}
+    .category-icon{font-size:24px; margin-bottom:8px; transition:transform 0.3s ease}
+    .category-btn.selected .category-icon{transform:rotate(10deg) scale(1.2)}
+    .pulse{animation:pulse 0.6s ease-in-out}
+    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>🧬 Genetix – Desafio da Hereditariedade</h1>
+      </div>
+      <div class="row">
+        <span class="pill small"><strong>Pontos:</strong> <span id="uiScore">0</span></span>
+        <span class="pill small"><strong>Questão:</strong> <span id="uiQ">0</span>/<span id="uiTotal">0</span></span>
+      </div>
+    </header>
+
+    <!-- TELA INICIAL -->
+    <section id="screenStart" class="card grid">
+      <div class="grid cols-3">
+        <div>
+          <h2 style="margin-top:0">Como funciona</h2>
+          <p class="muted">Responda às perguntas e desafios de genética baseados no material do Revisa Goiás. Há feedback e ranking local.</p>
+          <ul class="muted">
+            <li>✔️ Escolha categorias, dificuldade e nº de questões</li>
+            <li>✔️ Feedback com explicação detalhada</li>
+            <li>✔️ Ranking salvo no navegador</li>
+            <li>✔️ Modo <strong>Apresentação</strong> para projetor</li>
+          </ul>
+          <div class="banner">
+            <div>
+              <div class="muted small">Objetivo</div>
+              <div>Aplicar conceitos de genética resolvendo problemas baseados no conteúdo estudado.</div>
+            </div>
+            <div class="muted">🎯</div>
+          </div>
+        </div>
+
+        <div>
+          <h2 style="margin-top:0">Configurações</h2>
+          <label class="muted" for="numQ">Número de questões</label>
+          <select id="numQ" class="btn block" style="margin:6px 0 12px 0">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+          </select>
+
+          <label class="muted" for="diff">Dificuldade</label>
+          <select id="diff" class="btn block" style="margin:6px 0 12px 0">
+            <option value="basic" selected>Básico</option>
+            <option value="mix">Misto</option>
+            <option value="adv">Avançado</option>
+          </select>
+
+          <button id="btnStart" class="btn primary block">▶️ Começar</button>
+          <button id="btnDemo" class="btn ghost block">💡 Exemplo rápido</button>
+          <button id="btnPresent" class="btn ghost block">🖥️ Modo Apresentação</button>
+        </div>
+
+        <div>
+          <h2 style="margin-top:0">Jogador</h2>
+          <label class="muted" for="inPlayer">Seu nome</label>
+          <input id="inPlayer" class="btn block" placeholder="Ex.: Maycon" />
+          
+          <h3 style="margin-top:20px">Categorias</h3>
+          <p class="small muted">Selecione as categorias que deseja incluir no jogo:</p>
+          <div class="category-selector">
+            <div class="category-btn selected" data-category="mendel">
+              <div class="category-icon">🌱</div>
+              <div>Mendel</div>
+            </div>
+            <div class="category-btn selected" data-category="sexo">
+              <div class="category-icon">⚥</div>
+              <div>Ligada ao Sexo</div>
+            </div>
+            <div class="category-btn selected" data-category="variacoes">
+              <div class="category-icon">🔄</div>
+              <div>Variações</div>
+            </div>
+            <div class="category-btn selected" data-category="dna">
+              <div class="category-icon">🧪</div>
+              <div>DNA/Molecular</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:10px">
+        <div class="card">
+          <h3 style="margin:0 0 8px 0">🏆 Ranking (Top 5)</h3>
+          <div id="leaderboard" class="leader"></div>
+          <div class="row" style="margin-top:8px">
+            <button id="btnResetRank" class="btn ghost">🧹 Limpar ranking</button>
+            <button id="btnExport" class="btn">⬇️ Baixar HTML</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="margin:0 0 8px 0">Sobre o jogo</h3>
+          <p class="small muted">Jogo educativo de genética baseado no material do Revisa Goiás, desenvolvido para auxiliar no aprendizado de conceitos de hereditariedade, cruzamentos genéticos e sistemas de herança.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TELA DO JOGO -->
+    <section id="screenGame" class="card hidden">
+      <div class="row" style="justify-content:space-between; align-items:center">
+        <div class="row" id="topicTags"></div>
+        <div style="min-width:40%; width:40%" class="progress"><i id="bar"></i></div>
+      </div>
+
+      <h2 id="questionText" style="margin:12px 0 0 0">Pergunta aqui…</h2>
+      <div id="questionExtra" class="muted mono small"></div>
+      <div id="options" class="options"></div>
+
+      <div id="feedback" class="banner muted hidden" style="margin-top:10px"></div>
+
+      <div class="footer">
+        <div class="small muted">Dica: pense nos <span class="mono">gametas</span> e use o quadro de Punnett mentalmente.</div>
+        <div class="row">
+          <button id="btnSkip" class="btn ghost">⏭️ Pular</button>
+          <button id="btnNext" class="btn">Próxima ➜</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TELA FINAL -->
+    <section id="screenEnd" class="card hidden center">
+      <h2>🏁 Resultado</h2>
+      <p class="muted">Parabéns! Veja seu desempenho:</p>
+      <div class="grid cols-2" style="margin-top:10px">
+        <div class="card">
+          <div class="muted small">Pontuação</div>
+          <div style="font-size:40px; font-weight:800"><span id="finalScore">0</span> pts</div>
+        </div>
+        <div class="card">
+          <div class="muted small">Aproveitamento</div>
+          <div style="font-size:40px; font-weight:800"><span id="finalPct">0</span>%</div>
+        </div>
+      </div>
+      <p id="finalMsg" style="margin:14px 0 18px 0"></p>
+      <div class="row" style="justify-content:center">
+        <button id="btnReplay" class="btn primary">🔁 Jogar de novo</button>
+        <button id="btnSaveRank" class="btn">💾 Salvar no Ranking</button>
+      </div>
+    </section>
+
+    <footer class="muted small" style="margin-top:18px; text-align:center">
+      Baseado no material do Revisa Goiás - 3ª Série - Ciências da Natureza - 3º Bimestre/2025
+    </footer>
+  </div>
+
+  <script>
+    // ---------- Utilidades ----------
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => document.querySelectorAll(sel);
+    const el = (tag, cls, txt) => { const e = document.createElement(tag); if(cls) e.className = cls; if(txt!==undefined) e.innerHTML = txt; return e; };
+    const shuffle = arr => arr.sort(() => Math.random() - .5);
+
+    // ---------- Ranking (localStorage) ----------
+    const RKEY = 'genetix_rank_v1';
+    function loadRank(){ try{ return JSON.parse(localStorage.getItem(RKEY)||'[]'); }catch{ return [] } }
+    function saveRank(list){ localStorage.setItem(RKEY, JSON.stringify(list.slice(0,5))); }
+    function addRank(name, score, pct){ const arr = loadRank(); arr.push({name, score, pct, at: Date.now()}); arr.sort((a,b)=> b.score - a.score || b.pct - a.pct); saveRank(arr); renderRank(); }
+    function renderRank(){ const box = $('#leaderboard'); box.innerHTML=''; const arr = loadRank(); if(!arr.length){ box.appendChild(el('div','muted small','Sem registros ainda. Jogue uma partida!')); return; } arr.forEach((r,i)=>{ const row = el('div','score'); row.appendChild(el('div','',`#${i+1} <strong>${r.name||'Anônimo'}</strong>`)); row.appendChild(el('div','',`${r.score} pts · ${r.pct}%`)); box.appendChild(row); }); }
+
+    // ---------- Categorias e questões ----------
+    const questionsByCategory = {
+      mendel: [
+        { q:"Quem foi Gregor Mendel e qual sua contribuição para a genética?", opts:["Um monge que estudou ervilhas e estabeleceu as leis da hereditariedade","Um biólogo que descobriu a estrutura do DNA","Um médico que estudou doenças hereditárias","Um geneticista que criou a primeira planta transgênica"], a:0, exp:"Gregor Mendel foi um monge agostiniano que realizou experimentos com ervilhas e estabeleceu as leis fundamentais da hereditariedade, sendo reconhecido como o pai da genética.", tags:["mendel", "história"] },
+        { q:"Quais são os princípios da herança mendeliana?", opts:["Lei da Segregação e Lei da Distribuição Independente","Lei da Dominância e Lei da Recessividade","Lei da Mutação e Lei da Adaptação","Lei da Seleção Natural e Lei do Uso e Desuso"], a:0, exp:"Os princípios da herança mendeliana incluem a Lei da Segregação (cada indivíduo possui dois alelos que se separam na formação dos gametas) e a Lei da Distribuição Independente (alelos de diferentes genes se distribuem independentemente).", tags:["mendel", "leis"] },
+        { q:"O que são genes alelos?", opts:["Versões diferentes do mesmo gene que ocupam o mesmo lócus em cromossomos homólogos","Genes localizados em cromossomos diferentes","Genes que determinam o sexo do indivíduo","Genes que não seguem as leis de Mendel"], a:0, exp:"Genes alelos são versões diferentes do mesmo gene que ocupam o mesmo lócus em cromossomos homólogos, sendo um herdado do pai e outro da mãe.", tags:["mendel", "conceitos"] },
+        { q:"Qual a proporção fenotípica esperada no cruzamento de dois heterozigotos (Aa x Aa) para um gene com dominância completa?", opts:["3:1","1:2:1","1:1","9:3:3:1"], a:0, exp:"No cruzamento Aa x Aa, a proporção fenotípica esperada é 3:1 (3 dominante : 1 recessivo), enquanto a proporção genotípica é 1:2:1 (1 AA : 2 Aa : 1 aa).", tags:["mendel", "cruzamentos"] },
+        { q:"Qual a diferença entre genótipo e fenótipo?", opts:["Genótipo é a composição genética, fenótipo é a expressão observável","Genótipo é a característica visível, fenótipo é a composição genética","Ambos se referem à composição genética","Ambos se referem às características observáveis"], a:0, exp:"Genótipo refere-se à composição genética de um organismo (seus genes), enquanto fenótipo é a expressão observável ou manifestação desses genes (características visíveis).", tags:["mendel", "conceitos"] },
+        { q:"Em ervilhas, a cor amarela dos cotilédones (V) é dominante sobre a verde (v). Qual a proporção fenotípica do cruzamento Vv x Vv?", opts:["3 amarelas : 1 verde","1 amarela : 1 verde","Todas amarelas","Todas verdes"], a:0, exp:"O cruzamento Vv x Vv produz descendentes na proporção 3 amarelas : 1 verde, seguindo o padrão mendeliano de herança para um gene com dominância completa.", tags:["mendel", "cruzamentos"] },
+        { q:"Um indivíduo com genótipo AA para determinada característica é:", opts:["Homozigoto dominante","Homozigoto recessivo","Heterozigoto","Hemizigoto"], a:0, exp:"Um indivíduo com genótipo AA é homozigoto dominante, pois possui dois alelos iguais e dominantes para a característica.", tags:["mendel", "conceitos"] }
+      ],
+      sexo: [
+        { q:"O que é herança ligada ao sexo?", opts:["Herança de genes localizados nos cromossomos sexuais","Herança de genes que determinam apenas características sexuais","Herança que ocorre apenas em um dos sexos","Herança de genes que não seguem as leis de Mendel"], a:0, exp:"Herança ligada ao sexo refere-se aos genes localizados nos cromossomos sexuais (X e Y) que estão envolvidos na determinação de características, não necessariamente relacionadas às características sexuais primárias.", tags:["ligada-ao-sexo", "conceitos"] },
+        { q:"Por que o daltonismo é mais frequente em homens do que em mulheres?", opts:["Porque o gene está no cromossomo X e homens têm apenas um X","Porque o gene está no cromossomo Y e só homens têm Y","Porque mulheres têm maior resistência ao daltonismo","Porque é uma característica influenciada por hormônios masculinos"], a:0, exp:"O daltonismo é mais frequente em homens porque o gene está localizado no cromossomo X (herança recessiva ligada ao X) e os homens possuem apenas um cromossomo X, não tendo um alelo normal para compensar se herdarem o alelo recessivo.", tags:["ligada-ao-sexo", "doenças"] },
+        { q:"Uma mulher portadora do gene para hemofilia (XHXh) casa-se com um homem normal (XHY). Qual a probabilidade de terem uma filha hemofílica?", opts:["0%","25%","50%","100%"], a:0, exp:"A probabilidade é 0%, pois para uma filha ser hemofílica precisaria herdar o alelo recessivo do pai e da mãe. O pai normal (XHY) só pode passar o alelo dominante XH para as filhas.", tags:["ligada-ao-sexo", "cruzamentos"] },
+        { q:"Qual o genótipo de um homem daltônico?", opts:["XdY","XDY","XdXd","XDXd"], a:0, exp:"Um homem daltônico tem genótipo XdY, onde Xd representa o alelo recessivo para daltonismo no cromossomo X e Y é o cromossomo sexual masculino.", tags:["ligada-ao-sexo", "conceitos"] },
+        { q:"O que é herança restrita ao sexo?", opts:["Herança de genes localizados no cromossomo Y (genes holândricos)","Herança que ocorre apenas em mulheres","Herança de características que só aparecem em um sexo","Herança influenciada por hormônios sexuais"], a:0, exp:"Herança restrita ao sexo corresponde aos genes localizados no cromossomo Y (chamados genes holândricos), que são herdados exclusivamente de pai para filho.", tags:["ligada-ao-sexo", "conceitos"] },
+        { q:"Um homem hemofílico (XhY) casa-se com uma mulher normal homozigota (XHXH). Qual a probabilidade de terem um filho hemofílico?", opts:["0%","25%","50%","100%"], a:0, exp:"A probabilidade é 0%. O homem hemofílico passa o cromossomo Y para os filhos homens e o cromossomo Xh para as filhas. A mãe normal homozigota (XHXH) só passa o alelo dominante XH. Os filhos homens receberão XH da mãe e Y do pai, sendo normais (XHY).", tags:["ligada-ao-sexo", "cruzamentos"] }
+      ],
+      variacoes: [
+        { q:"O que é codominância?", opts:["Quando ambos os alelos se expressam completamente no heterozigoto","Quando um alelo mascara completamente o outro no heterozigoto","Quando há expressão intermediária no heterozigoto","Quando não há expressão de nenhum alelo no heterozigoto"], a:0, exp:"Codominância ocorre quando ambos os alelos de um gene se expressam completamente no indivíduo heterozigoto, resultando em um fenótipo que mostra características de ambos os alelos simultaneamente.", tags:["variações", "codominância"] },
+        { q:"Qual é um exemplo de codominância no sistema ABO?", opts:["Tipo sanguíneo AB","Tipo sanguíneo A","Tipo sanguíneo B","Tipo sanguíneo O"], a:0, exp:"O tipo sanguíneo AB é um exemplo de codominância, onde os alelos IA e IB se expressam simultaneamente, resultando na produção de ambos os antígenos A e B nas hemácias.", tags:["variações", "codominância"] },
+        { q:"O que é dominância incompleta?", opts:["Quando o heterozigoto apresenta fenótipo intermediário entre os dois homozigotos","Quando ambos os alelos se expressam completamente no heterozigoto","Quando um alelo mascara completamente o outro","Quando não há expressão de nenhum alelo no heterozigoto"], a:0, exp:"Dominância incompleta ocorre quando o heterozigoto apresenta um fenótipo intermediário entre os fenótipos dos homozigotos, como no caso das flores maravilha onde VV=vermelha, BB=branca e VB=rosa.", tags:["variações", "dominância-incompleta"] },
+        { q:"No sistema ABO, qual o genótipo de uma pessoa com sangue tipo O?", opts:["ii","IAIA","IBIB","IAi"], a:0, exp:"Pessoas com sangue tipo O têm genótipo ii, onde i é o alelo recessivo que não produz antígenos A ou B nas hemácias.", tags:["variações", "sistema-ABO"] },
+        { q:"Um homem com sangue tipo AB casa-se com uma mulher com sangue tipo B (genótipo IBi). Qual a probabilidade de terem um filho com sangue tipo A?", opts:["25%","0%","50%","75%"], a:0, exp:"A probabilidade é 25%. O homem AB (IAIB) produz gametas IA e IB. A mulher B (IBi) produz gametas IB e i. Os possíveis genótipos dos filhos são: IAIB (AB), IAi (A), IBIB (B), IBi (B). Apenas IAi resulta em sangue tipo A, com probabilidade de 1/4 ou 25%.", tags:["variações", "sistema-ABO"] },
+        { q:"Em bovinos da raça Shorthorn, o cruzamento entre um animal vermelho (RR) e um branco (WW) produz animais ruãos (RW). Isto é um exemplo de:", opts:["Codominância","Dominância incompleta","Herança ligada ao sexo","Epistasia"], a:0, exp:"É um exemplo de codominância, pois ambos os alelos (R para vermelho e W para branco) se expressam completamente no heterozigoto, resultando em animais com pelagem que apresenta pelos vermelhos e brancos distribuídos alternadamente.", tags:["variações", "codominância"] }
+      ],
+      dna: [
+        { q:"Quem propôs o modelo de dupla hélice para a estrutura do DNA?", opts:["Watson e Crick","Mendel e Darwin","Franklin e Chargaff","Pauling e Wilkins"], a:0, exp:"James Watson e Francis Crick propuseram o modelo de dupla hélice para a estrutura do DNA em 1953, baseando-se em trabalhos de Rosalind Franklin (imagens de difração de raios X) e Erwin Chargaff (análise das bases nitrogenadas).", tags:["dna", "história"] },
+        { q:"Qual das seguintes bases nitrogenadas é encontrada no RNA mas não no DNA?", opts:["Uracila","Adenina","Guanina","Citosina"], a:0, exp:"A uracila é encontrada no RNA mas não no DNA, onde é substituída pela timina. Ambas pareiam com adenina, mas a uracila falta o grupo metil presente na timina.", tags:["dna", "estrutura"] },
+        { q:"Qual é o processo pelo qual o DNA faz uma cópia de si mesmo?", opts:["Replicação","Transcrição","Tradução","Duplicação"], a:0, exp:"A replicação é o processo pelo qual o DNA faz uma cópia de si mesmo, permitindo que a informação genética seja passada para as células-filhas durante a divisão celular.", tags:["dna", "processos"] },
+        { q:"De acordo com o dogma central da biologia molecular, qual é o fluxo da informação genética?", opts:["DNA → RNA → Proteína","Proteína → RNA → DNA","RNA → DNA → Proteína","DNA → Proteína → RNA"], a:0, exp:"O dogma central da biologia molecular estabelece que a informação flui do DNA para o RNA (transcrição) e do RNA para as proteínas (tradução).", tags:["dna", "dogma-central"] },
+        { q:"O que é transcriptase reversa?", opts:["Enzima que sintetiza DNA a partir de RNA","Enzima que sintetiza RNA a partir de DNA","Enzima que replica DNA","Enzima que traduz RNA em proteína"], a:0, exp:"A transcriptase reversa é uma enzima que sintetiza DNA a partir de um molde de RNA, um processo contrário ao da transcrição normal. É encontrada em retrovírus como o HIV.", tags:["dna", "enzimas"] },
+        { q:"Qual técnica permite fazer milhões de cópias de uma sequência específica de DNA em poucas horas?", opts:["PCR (Reação em Cadeia da Polimerase)","Eletroforese em gel","Sequenciamento de DNA","Clonagem de DNA"], a:0, exp:"A PCR (Reação em Cadeia da Polimerase) é uma técnica que permite amplificar (fazer milhões de cópias) de uma sequência específica de DNA em poucas horas, sendo fundamental para diagnóstico médico, pesquisa genética e biologia forense.", tags:["dna", "técnicas"] }
+      ]
+    };
+
+    // ---------- Geradores dinâmicos ----------
+    function gametes(gen){
+      const hasUpper = /[A]/.test(gen);
+      const hasLower = /[a]/.test(gen);
+      if(hasUpper && hasLower) return ['A','a'];
+      if(hasUpper) return ['A'];
+      return ['a'];
+    }
+    function combine(g1,g2){ return g1.flatMap(a=> g2.map(b=> sortAlleles(a+b))); }
+    function sortAlleles(pair){ return pair.includes('A') && pair.includes('a') ? 'Aa' : (/A/.test(pair) ? 'AA' : 'aa'); }
+    function ratioPhen(arr){ const d = arr.filter(x=> /A/.test(x)).length; const r = arr.length - d; return `${d}:${r} (Dominante:Recessivo)`; }
+
+    function qMono(){
+      const gens = ["AA","Aa","aa"]; const p1 = gens[Math.floor(Math.random()*3)], p2 = gens[Math.floor(Math.random()*3)];
+      const g1 = gametes(p1), g2 = gametes(p2); const combos = combine(g1,g2);
+      const phenStr = ratioPhen(combos);
+      const options = shuffle([phenStr, '3:1 (Dominante:Recessivo)', '1:1 (Dominante:Recessivo)', '100% Dominante']);
+      return { q:`Cruzamento monohíbrido: <strong>${p1}</strong> × <strong>${p2}</strong> (A dominante). Qual a <em>proporção fenotípica</em>?`,
+        opts: options, a: options.findIndex(o=> o===phenStr),
+        exp:`Gametas ${p1}: <span class="mono">${g1.join(' / ')}</span>; ${p2}: <span class="mono">${g2.join(' / ')}</span>. Fenótipos: ${phenStr}.`, tags:["cruzamentos","mendel"] };
+    }
+
+    function qIncomplete(){
+      const p = [['RR','Rr'],['Rr','Rr'],['Rr','rr']][Math.floor(Math.random()*3)];
+      const map = {RR:'Vermelho', Rr:'Rosa', rr:'Branco'};
+      const g = (G=> G==='RR'?['R']:G==='rr'?['r']:['R','r']);
+      const combos = [g(p[0])[0]+g(p[1])[0], g(p[0])[0]+(g(p[1])[1]||g(p[1])[0]), (g(p[0])[1]||g(p[0])[0])+g(p[1])[0], (g(p[0])[1]||g(p[0])[0])+(g(p[1])[1]||g(p[1])[0])].map(s=> (s.includes('R')&&s.includes('r'))?'Rr':(s==='RR'?'RR':'rr'));
+      const phen = combos.map(c=> map[c]);
+      const counts = {Vermelho:phen.filter(x=>x==='Vermelho').length, Rosa:phen.filter(x=>x==='Rosa').length, Branco:phen.filter(x=>x==='Branco').length};
+      const correct = `${counts.Vermelho}:${counts.Rosa}:${counts.Branco} (V:R:B)`;
+      const options = shuffle([correct,'1:2:1 (V:R:B)','2:1:1 (V:R:B)','3:1:0 (V:R:B)']);
+      return { q:`Dominância incompleta (flores): <strong>${p[0]}</strong> × <strong>${p[1]}</strong>. Qual a proporção fenotípica (V:R:B)?`, opts:options, a:options.findIndex(o=>o===correct), exp:`Mapeamento: RR=Vermelho, Rr=Rosa, rr=Branco. Combinações → ${correct}.`, tags:["dominancia-incompleta"] };
+    }
+
+    // ---------- Montagem do conjunto de questões ----------
+    function buildQuestionSet(count, diff, selectedCategories){
+      let pool = [];
+      
+      // Adiciona questões das categorias selecionadas
+      selectedCategories.forEach(category => {
+        if(questionsByCategory[category]) {
+          pool = pool.concat(questionsByCategory[category]);
+        }
+      });
+      
+      // Adiciona questões geradas dinamicamente para categorias específicas
+      if(selectedCategories.includes('mendel')) {
+        for(let i=0; i<2; i++) pool.push(qMono());
+      }
+      
+      if(selectedCategories.includes('variacoes')) {
+        for(let i=0; i<2; i++) pool.push(qIncomplete());
+      }
+      
+      // Embaralha e seleciona o número solicitado de questões
+      let qs = shuffle(pool);
+      if(qs.length > count) qs = qs.slice(0, count);
+      return qs;
+    }
+
+    // ---------- Ajuste do nº de alternativas ----------
+    const GENERIC_WRONGS = [
+      'Nenhuma das alternativas','Não é possível determinar','Depende do ambiente','Dados insuficientes',
+      'Todas as alternativas','0%','25%','50%','75%','100%','3:1','1:1','1:2:1','9:3:3:1','A','B','AB','O','Dominante','Recessivo'
+    ];
+    function buildOptionsForCount(q, desired){
+      const correct = q.opts[q.a];
+      let wrongs = q.opts.filter((_,i)=> i!==q.a);
+      // completa com genéricos se faltar
+      const pool = [...GENERIC_WRONGS];
+      while(wrongs.length < desired-1 && pool.length){
+        const pick = pool.splice(Math.floor(Math.random()*pool.length),1)[0];
+        if(pick!==correct && !wrongs.includes(pick)) wrongs.push(pick);
+      }
+      // se ainda sobrar, repete variações numéricas seguras
+      while(wrongs.length < desired-1){
+        const filler = '—';
+        wrongs.push(filler + (wrongs.length));
+      }
+      const chosen = [correct, ...shuffle(wrongs).slice(0, Math.max(0, desired-1))];
+      const shuffled = shuffle(chosen);
+      const a = shuffled.indexOf(correct);
+      return {opts: shuffled, a};
+    }
+
+    // ---------- Estado do jogo ----------
+    let QUESTIONS = []; let qi = 0, score = 0, answered = false, ALTCOUNT = 5;
+
+    function startGame(){
+      const n = parseInt($('#numQ').value,10);
+      const d = $('#diff').value;
+      ALTCOUNT = 5;
+
+      // Obtém categorias selecionadas
+      const selectedCategories = [];
+      $$('.category-btn.selected').forEach(btn => {
+        selectedCategories.push(btn.getAttribute('data-category'));
+      });
+
+      // Verifica se pelo menos uma categoria foi selecionada
+      if(selectedCategories.length === 0) {
+        alert('Selecione pelo menos uma categoria para jogar!');
+        return;
+      }
+
+      QUESTIONS = buildQuestionSet(n, d, selectedCategories);
+      qi = 0; score = 0; answered = false;
+      $('#uiTotal').textContent = QUESTIONS.length; $('#uiScore').textContent = score;
+      $('#screenStart').classList.add('hidden'); $('#screenEnd').classList.add('hidden'); $('#screenGame').classList.remove('hidden');
+      renderQuestion();
+    }
+
+    function renderQuestion(){
+      const q = QUESTIONS[qi];
+      $('#uiQ').textContent = qi+1;
+      const pct = Math.round((qi)/QUESTIONS.length*100); $('#bar').style.width = pct+"%";
+      $('#questionText').innerHTML = q.q;
+      const tags = $('#topicTags'); tags.innerHTML=''; (q.tags||[]).forEach(t=> tags.appendChild(el('span','tag',t)));
+      $('#questionExtra').innerHTML = '';
+
+      // monta opções conforme quantidade desejada
+      const adj = buildOptionsForCount(q, ALTCOUNT);
+      q._opts = adj.opts; q._a = adj.a;
+
+      const box = $('#options'); box.innerHTML = '';
+      q._opts.forEach((text, idx)=>{ const opt = el('button','opt'); opt.innerHTML = text; opt.addEventListener('click', ()=> choose(idx)); box.appendChild(opt); });
+      $('#feedback').classList.add('hidden'); answered = false;
+    }
+
+    function choose(idx){
+      if(answered) return; answered = true; const q = QUESTIONS[qi]; const nodes = [...document.querySelectorAll('.opt')];
+      nodes.forEach((n,i)=>{ if(i===q._a){ n.classList.add('correct'); } if(i===idx && i!==q._a){ n.classList.add('wrong'); } n.disabled = true; });
+      let delta = (idx===q._a)?10:-5; score = Math.max(0, score+delta); $('#uiScore').textContent = score;
+      const fb = $('#feedback'); fb.innerHTML = (idx===q._a)
+        ? `✅ <strong>Correto!</strong> +10 pts · <span class="muted">${q.exp||''}</span>`
+        : `❌ <strong>Incorreto.</strong> -5 pts · <span class="muted">${q.exp||''}</span>`; fb.classList.remove('hidden');
+    }
+
+    function next(){ if(qi < QUESTIONS.length-1){ qi++; renderQuestion(); } else { endGame(); } }
+    function skip(){ if(!answered){ answered = true; $('#feedback').innerHTML = `⏭️ Pergunta pulada.`; $('#feedback').classList.remove('hidden'); } else { next(); } }
+
+    function endGame(){
+      $('#screenGame').classList.add('hidden'); $('#screenEnd').classList.remove('hidden');
+      $('#finalScore').textContent = score; const pct = Math.round((score / (QUESTIONS.length*10))*100); $('#finalPct').textContent = pct;
+      let msg = 'Bom trabalho! Continue praticando.'; if(pct>=90) msg='Excelente! Domínio de cruzamentos.'; else if(pct>=70) msg='Muito bom! Revise ABO e ligada ao X.'; else if(pct>=50) msg='Caminho certo. Reforce Punnett e conceitos.'; else msg='Refaça focando no básico e exemplos.';
+      $('#finalMsg').textContent = msg;
+      $('#bar').style.width = '100%';
+    }
+
+    // ---------- Exportar / Ranking / Apresentação ----------
+    function downloadSelf(){ const html = document.documentElement.outerHTML; const blob = new Blob([html], {type:'text/html'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'genetix-jogo-genetica.html'; a.click(); setTimeout(()=> URL.revokeObjectURL(a.href), 1000); }
+    function saveToRank(){ const player = ($('#inPlayer').value||'Anônimo').trim(); const pct = parseInt($('#finalPct').textContent,10)||0; addRank(player, score, pct); $('#screenEnd').classList.add('hidden'); $('#screenStart').classList.remove('hidden'); }
+    function togglePresent(){ document.body.classList.toggle('present'); }
+
+    // ---------- Eventos ----------
+    document.addEventListener('DOMContentLoaded', function() {
+      $('#btnStart').addEventListener('click', startGame);
+      $('#btnDemo').addEventListener('click', ()=>{ $('#numQ').value='5'; startGame(); });
+      $('#btnNext').addEventListener('click', next);
+      $('#btnSkip').addEventListener('click', skip);
+      $('#btnReplay').addEventListener('click', ()=>{ $('#screenEnd').classList.add('hidden'); $('#screenStart').classList.remove('hidden'); });
+      $('#btnExport').addEventListener('click', downloadSelf);
+      $('#btnSaveRank').addEventListener('click', saveToRank);
+      $('#btnPresent').addEventListener('click', togglePresent);
+      $('#btnResetRank').addEventListener('click', ()=>{ localStorage.removeItem(RKEY); renderRank(); });
+
+      // Seleção de categorias
+      $$('.category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          btn.classList.toggle('selected');
+          btn.classList.add('pulse');
+          setTimeout(() => btn.classList.remove('pulse'), 600);
+        });
+      });
+
+      // Inicializa
+      renderRank();
+    });
+  </script>
+</body>
+</html>
