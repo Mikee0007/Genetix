@@ -7,7 +7,7 @@ O objetivo é aprender conceitos de biologia de forma interativa, através de fa
 
 ## 🚀 Acesse o jogo
 O jogo está disponível online pelo **GitHub Pages**:  
-👉 [Clique aqui para jogar](https://Mikee0007.github.io/Genetix/)  
+👉 [Clique aqui para jogar](https://github.com/Mikee0007/Genetix.git)  
 
 *(caso o link ainda não funcione, ative o GitHub Pages nas configurações do repositório — branch `main`, pasta `/root`)*
 
